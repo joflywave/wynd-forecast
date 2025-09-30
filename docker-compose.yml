@@ -1,0 +1,25 @@
+
+services:
+  arome:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wynd_arome_test:latest
+    container_name: wynd_arome_test
+    working_dir: /app
+    command: python Arome_Test.py
+    volumes:
+      - /Users/timoldoerp/Desktop:/Desktop
+      # Optional: Mount your Desktop into the container at /Desktop for easy file access
+      # - /Users/timoldoerp/Desktop:/Desktop
+    # environment:
+    #   EXAMPLE_VAR: value
+    ports:
+      - "8080:8080"
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    # If you run on Apple Silicon and need x86 base images, uncomment:
+    # platform: linux/amd64
+
+
