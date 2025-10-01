@@ -4,3 +4,8 @@ numpy
 pandas
 matplotlib
 cartopy
+requests
+pillow
+openmeteo-requests
+requests-cache
+retry-requests
