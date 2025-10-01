@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir -r req.txt
 # Copy project files
 COPY . .
 
-# Default command to run the script
-CMD ["python", "Arome_Test.py"]
+# Default command to run the script (updated path)
+CMD ["python", "backend_forecast_py/Arome_Test.py"]
 
 

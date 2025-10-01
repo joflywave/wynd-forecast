@@ -7,7 +7,7 @@ services:
     image: wynd_arome_test:latest
     container_name: wynd_arome_test
     working_dir: /app
-    command: python Arome_Test.py
+    command: python backend_forecast_py/Arome_Test.py
     volumes:
       - /Users/timoldoerp/Desktop:/Desktop
       # Optional: Mount your Desktop into the container at /Desktop for easy file access
