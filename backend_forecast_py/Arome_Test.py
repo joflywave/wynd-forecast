@@ -238,7 +238,7 @@ def wind_canvas_route():
 </head>
 <body>
   <div id=\"map\"></div>
-  <div id=\"info\"><strong>Wind Animation</strong><br>Data updates hourly</div>
+  <div id=\"info\"><strong>Wind Animation</strong><br>Real-time Open-Meteo data<br><span id=\"wind-info\">Loading...</span></div>
   <script src=\"https://unpkg.com/leaflet@1.9.4/dist/leaflet.js\"></script>
   <script>
     const map = L.map('map', {{ center: [{LAT}, {LON}], zoom: 11, preferCanvas: true }});
@@ -261,8 +261,8 @@ def wind_canvas_route():
     positionCanvas();
 
     let particles = [];
-    const numParticles = 2000;
-    const maxAge = 120;
+    const numParticles = 1200;  // Reduced for smoother animation
+    const maxAge = 180;         // Longer trails
 
     function lonLatToPoint(lon, lat) {{ return map.latLngToContainerPoint([lat, lon]); }}
     function randomLonLat(b) {{
@@ -303,8 +303,8 @@ def wind_canvas_route():
 
       function evolve() {{
         const w = canvas.width, h = canvas.height;
-        // Trail fade
-        ctx.fillStyle = 'rgba(26, 26, 46, 0.92)';
+        // Slower trail fade for longer particle visibility
+        ctx.fillStyle = 'rgba(26, 26, 46, 0.96)';
         ctx.fillRect(0, 0, w, h);
 
         for (const p of particles) {{
@@ -313,7 +313,7 @@ def wind_canvas_route():
           }}
           const [ux, vy, s] = sampleVector(p.lon, p.lat);
           p.prevLon = p.lon; p.prevLat = p.lat;
-          const step = 0.010; // visual tuning
+          const step = 0.004; // Slower, more realistic movement
           p.lon += ux * step; p.lat += vy * step;
           const a = lonLatToPoint(p.prevLon, p.prevLat);
           const b = lonLatToPoint(p.lon, p.lat);
@@ -326,8 +326,26 @@ def wind_canvas_route():
       }}
       evolve();
 
+      // Display wind info
+      const avgU = U.flat().reduce((a,b) => a+b, 0) / (nx*ny);
+      const avgV = V.flat().reduce((a,b) => a+b, 0) / (nx*ny);
+      const avgSpeed = Math.hypot(avgU, avgV);
+      const avgDir = (Math.atan2(-avgU, -avgV) * 180/Math.PI + 360) % 360;
+      document.getElementById('wind-info').innerHTML = `Speed: ${{avgSpeed.toFixed(1)}} m/s<br>Direction: ${{avgDir.toFixed(0)}}°`;
+
       // Refresh grid hourly (cheap since constant field)
-      setInterval(() => {{ fetch('/wind_grid').then(r=>r.json()).then(g => {{ U.splice(0,U.length,...g.u); V.splice(0,V.length,...g.v); }}); }}, 3600000);
+      setInterval(() => {{ 
+        fetch('/wind_grid').then(r=>r.json()).then(g => {{ 
+          U.splice(0,U.length,...g.u); 
+          V.splice(0,V.length,...g.v);
+          // Update info display
+          const newU = g.u.flat().reduce((a,b) => a+b, 0) / (g.nx*g.ny);
+          const newV = g.v.flat().reduce((a,b) => a+b, 0) / (g.nx*g.ny);
+          const newSpeed = Math.hypot(newU, newV);
+          const newDir = (Math.atan2(-newU, -newV) * 180/Math.PI + 360) % 360;
+          document.getElementById('wind-info').innerHTML = `Speed: ${{newSpeed.toFixed(1)}} m/s<br>Direction: ${{newDir.toFixed(0)}}°`;
+        }}); 
+      }}, 3600000);
     }});
   </script>
 </body>
